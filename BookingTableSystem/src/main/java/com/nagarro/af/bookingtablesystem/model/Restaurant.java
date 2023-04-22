@@ -36,7 +36,7 @@ public class Restaurant {
     private int maxCustomersNo;
     @Column(name = "max_tables_no", nullable = false)
     private int maxTablesNo;
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.LAZY)
     private RestaurantManager restaurantManager;
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "restaurant_dates_capacity",

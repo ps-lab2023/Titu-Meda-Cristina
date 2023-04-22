@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class ListMapper {
-    private ModelMapper modelMapper;
+
+    private final ModelMapper modelMapper;
 
     public ListMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;

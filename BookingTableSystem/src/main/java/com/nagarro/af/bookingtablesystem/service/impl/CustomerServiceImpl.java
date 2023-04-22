@@ -37,7 +37,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDTO findById(UUID id) {
         return customerRepository.findById(id)
                 .map(this::mapToCustomerDTO)
-                .orElseThrow(() -> new NotFoundException("CustomerServiceImpl: Customer with id " + id +
+                .orElseThrow(() -> new NotFoundException("Customer with id " + id +
                         " could not be found!"));
     }
 
@@ -45,7 +45,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDTO findByEmail(String email) {
         return customerRepository.findByEmail(email)
                 .map(this::mapToCustomerDTO)
-                .orElseThrow(() -> new NotFoundException("CustomerServiceImpl: Customer with email " + email +
+                .orElseThrow(() -> new NotFoundException("Customer with email " + email +
                         " could not be found!"));
     }
 

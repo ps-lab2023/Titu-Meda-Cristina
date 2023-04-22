@@ -1,5 +1,6 @@
 package com.nagarro.af.bookingtablesystem.utils;
 
+import com.nagarro.af.bookingtablesystem.controller.response.UserResponse;
 import com.nagarro.af.bookingtablesystem.dto.BookingDTO;
 import com.nagarro.af.bookingtablesystem.dto.MenuDTO;
 import com.nagarro.af.bookingtablesystem.dto.RestaurantDTO;
@@ -72,4 +73,11 @@ public class TestComparators {
             .thenComparing(BookingDTO::getDateHour)
             .thenComparing(BookingDTO::getCustomersNo)
             .thenComparing(BookingDTO::getTablesNo);
+
+    public static final Comparator<UserResponse> USER_RESPONSE_COMPARATOR = Comparator.comparing(UserResponse::getUsername)
+            .thenComparing(UserResponse::getEmail)
+            .thenComparing(UserResponse::getFullName)
+            .thenComparing(UserResponse::getPhoneNo)
+            .thenComparing(UserResponse::getCountry)
+            .thenComparing(UserResponse::getCity);
 }

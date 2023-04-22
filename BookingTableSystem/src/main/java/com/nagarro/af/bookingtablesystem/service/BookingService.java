@@ -3,13 +3,12 @@ package com.nagarro.af.bookingtablesystem.service;
 import com.nagarro.af.bookingtablesystem.dto.BookingDTO;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface BookingService {
     BookingDTO makeBooking(BookingDTO bookingDTO);
 
-    Optional<BookingDTO> findById(UUID id);
+    BookingDTO findById(UUID id);
 
     List<BookingDTO> findAll();
 

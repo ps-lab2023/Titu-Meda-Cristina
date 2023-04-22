@@ -46,6 +46,11 @@ public class RestaurantManager extends User {
         restaurant.setRestaurantManager(this);
     }
 
+    public void removeRestaurant(Restaurant restaurant) {
+        restaurants.remove(restaurant);
+        restaurant.setRestaurantManager(null);
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

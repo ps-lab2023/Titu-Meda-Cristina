@@ -1,13 +1,10 @@
 package com.nagarro.af.bookingtablesystem.dto;
 
-import jakarta.validation.constraints.NotEmpty;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class RestaurantManagerDTO extends UserDTO {
-    @NotEmpty(message = "Managed restaurants are mandatory!")
     private List<UUID> restaurantIds = new ArrayList<>();
 
     public RestaurantManagerDTO() {

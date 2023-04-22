@@ -1,5 +1,6 @@
 package com.nagarro.af.bookingtablesystem.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
@@ -24,13 +25,14 @@ public class RestaurantDTO {
     private String address;
     @NotBlank(message = "Restaurant's description is mandatory!")
     private String description;
+    @JsonProperty("menu")
     private MenuDTO menuDTO;
     @NotNull(message = "Maximum number of customers per day must be set!")
     private Integer maxCustomersNo;
     @NotNull(message = "Maximum number of tables per day must be set!")
     private Integer maxTablesNo;
-    @NotNull(message = "Restaurant manager's id is mandatory!")
-    private RestaurantManagerDTO restaurantManagerDTO;
+    @JsonProperty("managerId")
+    private UUID restaurantManagerId;
 
     public RestaurantDTO() {
     }
@@ -136,12 +138,12 @@ public class RestaurantDTO {
         this.menuDTO = menuDTO;
     }
 
-    public RestaurantManagerDTO getRestaurantManagerDTO() {
-        return restaurantManagerDTO;
+    public UUID getRestaurantManagerId() {
+        return restaurantManagerId;
     }
 
-    public void setRestaurantManagerDTO(RestaurantManagerDTO restaurantManagerDTO) {
-        this.restaurantManagerDTO = restaurantManagerDTO;
+    public void setRestaurantManagerId(UUID restaurantManagerId) {
+        this.restaurantManagerId = restaurantManagerId;
     }
 
     @Override
