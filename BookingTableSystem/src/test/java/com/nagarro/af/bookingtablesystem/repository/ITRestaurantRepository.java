@@ -24,7 +24,7 @@ public class ITRestaurantRepository extends ITBaseRepository {
     public void testSave_OneToOneRelationship_Menu() {
         Restaurant restaurant = buildRestaurantWithMenu();
 
-        Restaurant returnedRestaurant = restaurantRepository.save(restaurant);
+        Restaurant returnedRestaurant = restaurantRepository.saveAndFlush(restaurant);
 
         assertTrue(restaurantRepository.findById(returnedRestaurant.getId()).isPresent());
         assertTrue(menuRepository.findById(returnedRestaurant.getId()).isPresent());

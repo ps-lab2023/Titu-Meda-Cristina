@@ -21,8 +21,8 @@ public class RestaurantControllerImpl implements RestaurantController {
     }
 
     @Override
-    public ResponseEntity<RestaurantDTO> save(RestaurantDTO restaurantDTO, MultipartFile menu) {
-        return new ResponseEntity<>(restaurantService.save(restaurantDTO, menu), HttpStatus.CREATED);
+    public ResponseEntity<RestaurantDTO> save(RestaurantDTO restaurantDTO) {
+        return new ResponseEntity<>(restaurantService.save(restaurantDTO), HttpStatus.CREATED);
     }
 
     @Override
@@ -54,6 +54,12 @@ public class RestaurantControllerImpl implements RestaurantController {
     @Override
     public ResponseEntity<Void> assignRestaurantManager(UUID restaurantId, UUID managerId) {
         restaurantService.assignRestaurantManager(restaurantId, managerId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<Void> uploadMenu(UUID restaurantId, MultipartFile menu) {
+        restaurantService.uploadMenu(restaurantId, menu);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -1,8 +1,8 @@
 package com.nagarro.af.bookingtablesystem.controller.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagarro.af.bookingtablesystem.dto.MenuDTO;
 import com.nagarro.af.bookingtablesystem.dto.RestaurantDTO;
+import com.nagarro.af.bookingtablesystem.exception.CorruptedFileException;
 import com.nagarro.af.bookingtablesystem.exception.NotFoundException;
 import com.nagarro.af.bookingtablesystem.exception.handler.ApiException;
 import com.nagarro.af.bookingtablesystem.service.RestaurantService;
@@ -19,12 +19,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ITRestaurantController {
 
     private static final UUID RESTAURANT_ID = UUID.fromString(TestDataBuilder.RESTAURANT_ID);
+
+    private static final UUID MANAGER_ID = UUID.fromString(TestDataBuilder.RESTAURANT_MANAGER_ID);
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,16 +48,11 @@ public class ITRestaurantController {
     public void testSave_whenValidInput_thenReturnStatus201() throws Exception {
         RestaurantDTO restaurantDTO = buildRestaurantDTO();
 
-        MockMultipartFile restaurantDTOJson = new MockMultipartFile(
-                "restaurant", "", "application/json",
-                objectMapper.writeValueAsString(restaurantDTO).getBytes()
-        );
+        when(restaurantService.save(restaurantDTO)).thenReturn(restaurantDTO);
 
-        when(restaurantService.save(restaurantDTO, null)).thenReturn(restaurantDTO);
-
-        mockMvc.perform(multipart("/restaurants")
-                        .file(restaurantDTOJson)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+        mockMvc.perform(post("/restaurants")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(restaurantDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").value(restaurantDTO.getId().toString()))
                 .andExpect(jsonPath("name").value(restaurantDTO.getName()))
@@ -67,47 +63,9 @@ public class ITRestaurantController {
                 .andExpect(jsonPath("address").value(restaurantDTO.getAddress()))
                 .andExpect(jsonPath("description").value(restaurantDTO.getDescription()))
                 .andExpect(jsonPath("managerId").isEmpty())
+                .andExpect(jsonPath("menu").isEmpty())
                 .andExpect(jsonPath("maxCustomersNo").value(restaurantDTO.getMaxCustomersNo()))
-                .andExpect(jsonPath("maxTablesNo").value(restaurantDTO.getMaxTablesNo()))
-                .andExpect(jsonPath("menu").isEmpty());
-    }
-
-    @Test
-    public void testSave_whenValidInputWithMenu_thenReturnStatus201() throws Exception {
-        RestaurantDTO restaurantDTO = buildRestaurantDTO();
-        RestaurantDTO restaurantDTOWithMenu = buildRestaurantDTOWithMenu();
-        MenuDTO menuDTO = restaurantDTOWithMenu.getMenuDTO();
-
-        MockMultipartFile restaurantDTOJson = new MockMultipartFile(
-                "restaurant", "", "application/json",
-                objectMapper.writeValueAsString(restaurantDTO).getBytes()
-        );
-        MockMultipartFile menuFile = new MockMultipartFile(
-                "menu", "menu.pdf", MediaType.MULTIPART_FORM_DATA_VALUE, "MenuPDF".getBytes()
-        );
-
-        when(restaurantService.save(restaurantDTO, menuFile)).thenReturn(restaurantDTOWithMenu);
-
-        mockMvc.perform(multipart("/restaurants")
-                        .file(restaurantDTOJson)
-                        .file(menuFile)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").value(restaurantDTO.getId().toString()))
-                .andExpect(jsonPath("name").value(restaurantDTO.getName()))
-                .andExpect(jsonPath("email").value(restaurantDTO.getEmail()))
-                .andExpect(jsonPath("phoneNo").value(restaurantDTO.getPhoneNo()))
-                .andExpect(jsonPath("country").value(restaurantDTO.getCountry()))
-                .andExpect(jsonPath("city").value(restaurantDTO.getCity()))
-                .andExpect(jsonPath("address").value(restaurantDTO.getAddress()))
-                .andExpect(jsonPath("description").value(restaurantDTO.getDescription()))
-                .andExpect(jsonPath("managerId").isEmpty())
-                .andExpect(jsonPath("maxCustomersNo").value(restaurantDTO.getMaxCustomersNo()))
-                .andExpect(jsonPath("maxTablesNo").value(restaurantDTO.getMaxTablesNo()))
-                .andExpect(jsonPath("menu.id").value(menuDTO.getId().toString()))
-                .andExpect(jsonPath("menu.fileName").value(menuDTO.getFileName()))
-                .andExpect(jsonPath("menu.contentType").value(menuDTO.getContentType()))
-                .andExpect(jsonPath("menu.content").value(Base64.getEncoder().encodeToString(menuDTO.getContent())));
+                .andExpect(jsonPath("maxTablesNo").value(restaurantDTO.getMaxTablesNo()));
     }
 
     @Test
@@ -115,16 +73,11 @@ public class ITRestaurantController {
         RestaurantDTO restaurantDTO = buildRestaurantDTO();
         restaurantDTO.setEmail(null);
 
-        MockMultipartFile restaurantDTOJson = new MockMultipartFile(
-                "restaurant", "", "application/json",
-                objectMapper.writeValueAsString(restaurantDTO).getBytes()
-        );
+        when(restaurantService.save(restaurantDTO)).thenReturn(restaurantDTO);
 
-        when(restaurantService.save(restaurantDTO, null)).thenReturn(restaurantDTO);
-
-        MvcResult mvcResult = mockMvc.perform(multipart("/restaurants")
-                        .file(restaurantDTOJson)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
+        MvcResult mvcResult = mockMvc.perform(post("/restaurants")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(restaurantDTO)))
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
@@ -278,9 +231,9 @@ public class ITRestaurantController {
     public void testDelete_whenInvalidId_thenReturnStatus404() throws Exception {
         String notFoundMessage = "Restaurant with id " + RESTAURANT_ID + " could not be found!";
 
-        when(restaurantService.findById(RESTAURANT_ID)).thenThrow(new NotFoundException(notFoundMessage));
+        doThrow(new NotFoundException(notFoundMessage)).when(restaurantService).delete(RESTAURANT_ID);
 
-        MvcResult mvcResult = mockMvc.perform(get("/restaurants/" + RESTAURANT_ID))
+        MvcResult mvcResult = mockMvc.perform(delete("/restaurants/" + RESTAURANT_ID))
                 .andExpect(status().isNotFound())
                 .andReturn();
 
@@ -292,23 +245,99 @@ public class ITRestaurantController {
         assertThat(actualResponseBody).isEqualToIgnoringWhitespace(expectedResponseBody);
     }
 
+    @Test
+    public void testAssignRestaurantManager_whenValidId_thenReturnStatus200() throws Exception {
+        mockMvc.perform(put("/restaurants/" + RESTAURANT_ID + "/manager/" + MANAGER_ID))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testAssignRestaurantManager_whenInvalidRestaurantId_thenReturnStatus404() throws Exception {
+        String notFoundMessage = "Restaurant with id " + RESTAURANT_ID + " could not be found!";
+
+        doThrow(new NotFoundException(notFoundMessage))
+                .when(restaurantService).assignRestaurantManager(RESTAURANT_ID, MANAGER_ID);
+
+        MvcResult mvcResult = mockMvc.perform(put("/restaurants/" + RESTAURANT_ID + "/manager/" + MANAGER_ID))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        ApiException expectedException = new ApiException(HttpStatus.NOT_FOUND, notFoundMessage);
+
+        String expectedResponseBody = objectMapper.writeValueAsString(expectedException);
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+
+        assertThat(actualResponseBody).isEqualToIgnoringWhitespace(expectedResponseBody);
+    }
+
+    @Test
+    public void testAssignRestaurantManager_whenInvalidManagerId_thenReturnStatus404() throws Exception {
+        String notFoundMessage = "Restaurant manager with id " + MANAGER_ID + " could not be found!";
+
+        doThrow(new NotFoundException(notFoundMessage))
+                .when(restaurantService).assignRestaurantManager(RESTAURANT_ID, MANAGER_ID);
+
+        MvcResult mvcResult = mockMvc.perform(put("/restaurants/" + RESTAURANT_ID + "/manager/" + MANAGER_ID))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        ApiException expectedException = new ApiException(HttpStatus.NOT_FOUND, notFoundMessage);
+
+        String expectedResponseBody = objectMapper.writeValueAsString(expectedException);
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+
+        assertThat(actualResponseBody).isEqualToIgnoringWhitespace(expectedResponseBody);
+    }
+
+    @Test
+    public void testUploadMenu_whenValidFile_thenReturnStatus200() throws Exception {
+        MockMultipartFile menu = new MockMultipartFile(
+                "menu",
+                "menu.pdf",
+                MediaType.MULTIPART_FORM_DATA_VALUE,
+                "menu".getBytes()
+        );
+
+        doNothing().when(restaurantService).uploadMenu(RESTAURANT_ID, menu);
+
+        mockMvc.perform(multipart("/restaurants/" + RESTAURANT_ID)
+                        .file(menu)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testUploadMenu_whenInvalidFile_thenReturnStatus415() throws Exception {
+        String corruptedFileMessage = "Menu file is invalid!";
+
+        MockMultipartFile menu = new MockMultipartFile(
+                "menu",
+                null,
+                MediaType.MULTIPART_FORM_DATA_VALUE,
+                "menu".getBytes()
+        );
+
+        doThrow(new CorruptedFileException(corruptedFileMessage))
+                .when(restaurantService).uploadMenu(RESTAURANT_ID, menu);
+
+        MvcResult mvcResult = mockMvc.perform(multipart("/restaurants/" + RESTAURANT_ID)
+                        .file(menu)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isUnsupportedMediaType())
+                .andReturn();
+
+        ApiException expectedException = new ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, corruptedFileMessage);
+
+        String expectedResponseBody = objectMapper.writeValueAsString(expectedException);
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+
+        assertThat(actualResponseBody).isEqualToIgnoringWhitespace(expectedResponseBody);
+    }
+
     @NotNull
     private RestaurantDTO buildRestaurantDTO() {
         RestaurantDTO restaurantDTO = TestDataBuilder.buildRestaurantDTO();
         restaurantDTO.setId(RESTAURANT_ID);
-        return restaurantDTO;
-    }
-
-    @NotNull
-    private RestaurantDTO buildRestaurantDTOWithMenu() {
-        RestaurantDTO restaurantDTO = buildRestaurantDTO();
-
-        MenuDTO menuDTO = TestDataBuilder.buildMenuDTO();
-        assert menuDTO != null;
-
-        menuDTO.setId(restaurantDTO.getId());
-        restaurantDTO.setMenuDTO(menuDTO);
-
         return restaurantDTO;
     }
 }

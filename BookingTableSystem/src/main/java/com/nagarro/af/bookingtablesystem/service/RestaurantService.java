@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface RestaurantService {
-    RestaurantDTO save(RestaurantDTO restaurantDTO, MultipartFile menu);
+    RestaurantDTO save(RestaurantDTO restaurantDTO);
 
     RestaurantDTO findById(UUID id);
 
@@ -20,4 +20,6 @@ public interface RestaurantService {
     void delete(UUID id);
 
     void assignRestaurantManager(UUID restaurantId, UUID managerId);
+
+    void uploadMenu(UUID restaurantId, MultipartFile menuFile);
 }

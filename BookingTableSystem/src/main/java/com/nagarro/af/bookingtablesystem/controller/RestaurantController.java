@@ -17,7 +17,7 @@ import java.util.UUID;
 public interface RestaurantController {
 
     @PostMapping(
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiOperation(value = "Save a new restaurant.",
@@ -27,8 +27,7 @@ public interface RestaurantController {
             @ApiResponse(code = 201, message = "Restaurant successfully created!"),
             @ApiResponse(code = 400, message = "Bad request!")
     })
-    ResponseEntity<RestaurantDTO> save(@Valid @RequestPart(name = "restaurant") RestaurantDTO restaurantDTO,
-                                       @RequestPart(name = "menu", required = false) MultipartFile menu);
+    ResponseEntity<RestaurantDTO> save(@Valid @RequestBody RestaurantDTO restaurantDTO);
 
     @GetMapping(
             path = "/{id}",
@@ -86,13 +85,25 @@ public interface RestaurantController {
     })
     ResponseEntity<Void> delete(@PathVariable UUID id);
 
-    @PutMapping
+    @PutMapping(path = "/{restaurant_id}/manager/{manager_id}")
     @ApiOperation(value = "Assign a manager to a restaurant.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Manager successfully assigned!"),
             @ApiResponse(code = 404, message = "Restaurant or manager not found!")
     })
-    ResponseEntity<Void> assignRestaurantManager(@RequestParam("restaurant_id") UUID restaurantId,
-                                                 @RequestParam("manager_id") UUID managerId);
+    ResponseEntity<Void> assignRestaurantManager(@PathVariable("restaurant_id") UUID restaurantId,
+                                                 @PathVariable("manager_id") UUID managerId);
+
+    @PostMapping(
+            path = "/{restaurant_id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    @ApiOperation(value = "Add a menu to a restaurant.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Menu successfully uploaded!"),
+            @ApiResponse(code = 404, message = "Restaurant not found!")
+    })
+    ResponseEntity<Void> uploadMenu(@PathVariable("restaurant_id") UUID restaurantId,
+                                    @RequestPart(name = "menu", required = false) MultipartFile menu);
 
 }

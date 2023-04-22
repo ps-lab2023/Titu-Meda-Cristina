@@ -70,7 +70,6 @@ public class Menu {
 
     public void setRestaurant(Restaurant restaurant) {
         this.restaurant = restaurant;
-        this.restaurant.setMenu(this);
     }
 
     @Override

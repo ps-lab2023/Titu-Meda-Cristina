@@ -4,9 +4,12 @@ import com.nagarro.af.bookingtablesystem.dto.MenuDTO;
 import com.nagarro.af.bookingtablesystem.dto.RestaurantDTO;
 import com.nagarro.af.bookingtablesystem.exception.CorruptedFileException;
 import com.nagarro.af.bookingtablesystem.exception.NotFoundException;
+import com.nagarro.af.bookingtablesystem.mapper.impl.service.MenuMapper;
 import com.nagarro.af.bookingtablesystem.mapper.impl.service.RestaurantMapper;
+import com.nagarro.af.bookingtablesystem.model.Menu;
 import com.nagarro.af.bookingtablesystem.model.Restaurant;
 import com.nagarro.af.bookingtablesystem.model.RestaurantManager;
+import com.nagarro.af.bookingtablesystem.repository.MenuRepository;
 import com.nagarro.af.bookingtablesystem.repository.RestaurantManagerRepository;
 import com.nagarro.af.bookingtablesystem.repository.RestaurantRepository;
 import com.nagarro.af.bookingtablesystem.service.RestaurantService;
@@ -27,25 +30,26 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     private final RestaurantManagerRepository restaurantManagerRepository;
 
+    private final MenuRepository menuRepository;
+
     private final RestaurantMapper restaurantMapper;
+
+    private final MenuMapper menuMapper;
 
     public RestaurantServiceImpl(RestaurantRepository restaurantRepository,
                                  RestaurantManagerRepository restaurantManagerRepository,
-                                 RestaurantMapper restaurantMapper) {
+                                 MenuRepository menuRepository, RestaurantMapper restaurantMapper, MenuMapper menuMapper) {
         this.restaurantRepository = restaurantRepository;
         this.restaurantManagerRepository = restaurantManagerRepository;
+        this.menuRepository = menuRepository;
         this.restaurantMapper = restaurantMapper;
+        this.menuMapper = menuMapper;
     }
 
     @Override
-    public RestaurantDTO save(RestaurantDTO restaurantDTO, MultipartFile menu) {
-        MenuDTO menuDTO = null;
-        if (menu != null) {
-            menuDTO = getMenuDTO(menu);
-        }
-        restaurantDTO.setMenuDTO(menuDTO);
+    public RestaurantDTO save(RestaurantDTO restaurantDTO) {
         Restaurant restaurant = restaurantMapper.mapDTOtoEntity(restaurantDTO);
-        return restaurantMapper.mapEntityToDTO(restaurantRepository.save(restaurant));
+        return restaurantMapper.mapEntityToDTO(restaurantRepository.saveAndFlush(restaurant));
     }
 
     @Override
@@ -115,16 +119,35 @@ public class RestaurantServiceImpl implements RestaurantService {
         restaurantManagerRepository.save(manager);
     }
 
+    @Override
+    public void uploadMenu(UUID restaurantId, MultipartFile menuFile) {
+        Optional<Menu> optionalMenu = menuRepository.findById(restaurantId);
+        optionalMenu.ifPresent(menuRepository::delete);
+
+        RestaurantDTO restaurantDTO = findById(restaurantId);
+        MenuDTO menuDTO = null;
+        if (menuFile != null) {
+            menuDTO = getMenuDTO(menuFile);
+        }
+
+        Restaurant restaurant = restaurantMapper.mapDTOtoEntity(restaurantDTO);
+        Menu menu = menuMapper.mapDTOtoEntity(menuDTO);
+        menu.setRestaurant(restaurant);
+        restaurant.setMenu(menu);
+
+        restaurantRepository.save(restaurant);
+    }
+
+    private RestaurantDTO mapToRestaurantDTO(Restaurant restaurant) {
+        return restaurantMapper.mapEntityToDTO(restaurant);
+    }
+
     private MenuDTO getMenuDTO(@NotNull MultipartFile menu) {
         try {
             String menuFileName = StringUtils.cleanPath(menu.getOriginalFilename());
             return new MenuDTO(menuFileName, menu.getBytes(), menu.getContentType());
         } catch (IOException e) {
-            throw new CorruptedFileException("Menu file is invalid: " + e);
+            throw new CorruptedFileException("Menu file is invalid!");
         }
-    }
-
-    private RestaurantDTO mapToRestaurantDTO(Restaurant restaurant) {
-        return restaurantMapper.mapEntityToDTO(restaurant);
     }
 }

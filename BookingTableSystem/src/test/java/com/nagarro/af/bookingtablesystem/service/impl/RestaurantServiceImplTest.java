@@ -1,10 +1,8 @@
 package com.nagarro.af.bookingtablesystem.service.impl;
 
-import com.nagarro.af.bookingtablesystem.dto.MenuDTO;
 import com.nagarro.af.bookingtablesystem.dto.RestaurantDTO;
 import com.nagarro.af.bookingtablesystem.exception.NotFoundException;
 import com.nagarro.af.bookingtablesystem.mapper.impl.service.RestaurantMapper;
-import com.nagarro.af.bookingtablesystem.model.Menu;
 import com.nagarro.af.bookingtablesystem.model.Restaurant;
 import com.nagarro.af.bookingtablesystem.model.RestaurantManager;
 import com.nagarro.af.bookingtablesystem.repository.RestaurantManagerRepository;
@@ -16,8 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.*;
 
@@ -40,8 +36,6 @@ public class RestaurantServiceImplTest {
 
     private static final Comparator<RestaurantDTO> RESTAURANT_DTO_COMPARATOR = TestComparators.RESTAURANT_DTO_COMPARATOR;
 
-    private static final Comparator<MenuDTO> MENU_DTO_COMPARATOR = TestComparators.MENU_DTO_COMPARATOR;
-
     @Mock
     private RestaurantRepository restaurantRepository;
 
@@ -63,35 +57,10 @@ public class RestaurantServiceImplTest {
         when(restaurantRepository.save(RESTAURANT_TEST)).thenReturn(RESTAURANT_TEST);
         when(restaurantMapper.mapEntityToDTO(RESTAURANT_TEST)).thenReturn(RESTAURANT_DTO_TEST);
 
-        RestaurantDTO returnedManagerDTO = restaurantService.save(RESTAURANT_DTO_TEST, null);
+        RestaurantDTO returnedManagerDTO = restaurantService.save(RESTAURANT_DTO_TEST);
 
         assertNotNull(returnedManagerDTO);
         assertThat(RESTAURANT_DTO_COMPARATOR.compare(returnedManagerDTO, RESTAURANT_DTO_TEST)).isZero();
-    }
-
-    @Test
-    public void testSaveWithMenu_success() {
-        Restaurant restaurantWithMenu = buildRestaurantWithMenu();
-        RestaurantDTO restaurantDTO = TestDataBuilder.buildRestaurantDTO();
-        restaurantDTO.setId(RESTAURANT_UUID_TEST);
-
-
-        MockMultipartFile menu = new MockMultipartFile(
-                "menu", "menu.pdf", MediaType.MULTIPART_FORM_DATA_VALUE, "menu".getBytes()
-        );
-
-        when(restaurantMapper.mapDTOtoEntity(restaurantDTO)).thenReturn(restaurantWithMenu);
-        when(restaurantRepository.save(restaurantWithMenu)).thenReturn(restaurantWithMenu);
-        when(restaurantMapper.mapEntityToDTO(restaurantWithMenu)).thenReturn(restaurantDTO);
-
-        RestaurantDTO returnedManagerDTO = restaurantService.save(restaurantDTO, menu);
-        MenuDTO returnedMenuDTO = returnedManagerDTO.getMenuDTO();
-        returnedMenuDTO.setId(RESTAURANT_UUID_TEST);
-
-        assertNotNull(returnedManagerDTO);
-        assertNotNull(returnedManagerDTO.getMenuDTO());
-        assertThat(RESTAURANT_DTO_COMPARATOR.compare(returnedManagerDTO, restaurantDTO)).isZero();
-        assertThat(MENU_DTO_COMPARATOR.compare(returnedMenuDTO, restaurantDTO.getMenuDTO())).isZero();
     }
 
     @Test
@@ -252,17 +221,5 @@ public class RestaurantServiceImplTest {
                 restaurantService.assignRestaurantManager(RESTAURANT_UUID_TEST, MANAGER_UUID_TEST));
 
         assertEquals(exception.getMessage(), "Restaurant manager with id " + MANAGER_UUID_TEST + " could not be found!");
-    }
-
-    private Restaurant buildRestaurantWithMenu() {
-        Restaurant restaurant = TestDataBuilder.buildRestaurant();
-        restaurant.setId(RESTAURANT_UUID_TEST);
-
-        Menu menu = TestDataBuilder.buildMenu(restaurant);
-        assert menu != null;
-        menu.setId(RESTAURANT_UUID_TEST);
-
-        restaurant.setMenu(menu);
-        return restaurant;
     }
 }
