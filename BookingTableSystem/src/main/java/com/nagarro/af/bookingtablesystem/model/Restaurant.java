@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.sql.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "restaurants")
@@ -44,6 +41,8 @@ public class Restaurant {
             inverseJoinColumns = {@JoinColumn(name = "restaurant_capacity_id", referencedColumnName = "id")})
     @MapKeyTemporal(TemporalType.DATE)
     private Map<Date, RestaurantCapacity> dateCapacityAvailability = new HashMap<>();
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
+    private List<Booking> bookings = new ArrayList<>();
 
     public Restaurant() {
     }
@@ -173,6 +172,18 @@ public class Restaurant {
         this.dateCapacityAvailability = dateCapacityAvailability;
     }
 
+    public List<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(List<Booking> bookings) {
+        this.bookings = bookings;
+    }
+
+    public void addBooking(Booking booking) {
+        bookings.add(booking);
+    }
+
     public RestaurantManager getRestaurantManager() {
         return restaurantManager;
     }
@@ -192,23 +203,5 @@ public class Restaurant {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Restaurant{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNo='" + phoneNo + '\'' +
-                ", country='" + country + '\'' +
-                ", city='" + city + '\'' +
-                ", address='" + address + '\'' +
-                ", description='" + description + '\'' +
-                ", menu=" + menu +
-                ", maxCustomersNo=" + maxCustomersNo +
-                ", maxTablesNo=" + maxTablesNo +
-                ", restaurantManager=" + restaurantManager +
-                '}';
     }
 }

@@ -7,8 +7,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class CustomBookingRepositoryImpl implements CustomBookingRepository {
 
@@ -18,6 +19,7 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
     private EntityManager entityManager;
 
     @Override
+    @Transactional
     public Booking makeBooking(Booking booking) {
         int tablesNo = booking.getTablesNo();
         int customersNo = booking.getCustomersNo();

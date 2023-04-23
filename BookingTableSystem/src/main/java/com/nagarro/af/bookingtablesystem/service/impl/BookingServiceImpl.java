@@ -36,6 +36,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDTO makeBooking(BookingDTO bookingDTO) {
         Booking booking = bookingMapper.mapDTOtoEntity(bookingDTO);
+        booking.updateRestaurantCapacity();
+        booking.addBookingToCustomer();
+        booking.addBookingToRestaurant();
 
         if (isEnoughRestaurantCapacity(booking)) {
             return bookingMapper.mapEntityToDTO(bookingRepository.makeBooking(booking));

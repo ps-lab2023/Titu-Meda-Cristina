@@ -15,6 +15,7 @@ import com.nagarro.af.bookingtablesystem.repository.RestaurantRepository;
 import com.nagarro.af.bookingtablesystem.service.RestaurantService;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,7 +50,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDTO save(RestaurantDTO restaurantDTO) {
         Restaurant restaurant = restaurantMapper.mapDTOtoEntity(restaurantDTO);
-        return restaurantMapper.mapEntityToDTO(restaurantRepository.saveAndFlush(restaurant));
+        return restaurantMapper.mapEntityToDTO(restaurantRepository.save(restaurant));
     }
 
     @Override
@@ -81,6 +82,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
+    @Transactional
     public void delete(UUID id) {
         Optional<Restaurant> optionalRestaurant = restaurantRepository.findById(id);
 

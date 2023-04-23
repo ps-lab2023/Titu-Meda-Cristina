@@ -6,6 +6,8 @@ import com.nagarro.af.bookingtablesystem.dto.RestaurantManagerDTO;
 import com.nagarro.af.bookingtablesystem.exception.NotFoundException;
 import com.nagarro.af.bookingtablesystem.exception.handler.ApiException;
 import com.nagarro.af.bookingtablesystem.mapper.impl.controller.RestaurantManagerDTOMapper;
+import com.nagarro.af.bookingtablesystem.service.AdminService;
+import com.nagarro.af.bookingtablesystem.service.CustomerService;
 import com.nagarro.af.bookingtablesystem.service.RestaurantManagerService;
 import com.nagarro.af.bookingtablesystem.utils.TestDataBuilder;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,6 +43,12 @@ public class ITRestaurantManagerControllerImpl {
     private RestaurantManagerService restaurantManagerService;
 
     @MockBean
+    private AdminService adminService;
+
+    @MockBean
+    private CustomerService customerService;
+
+    @MockBean
     private RestaurantManagerDTOMapper restaurantManagerDTOMapper;
 
     @Test
@@ -47,7 +56,8 @@ public class ITRestaurantManagerControllerImpl {
         RestaurantManagerDTO managerDTO = TestDataBuilder.buildRestaurantManagerDTO();
         RestaurantManagerResponse managerResponse = TestDataBuilder.buildRestaurantManagerResponse();
 
-        when(restaurantManagerService.findByEmail(managerDTO.getEmail())).thenThrow(NotFoundException.class); // for the @UniqueEmail validation annotation
+        // for the @UniqueEmail validation annotation
+        when(restaurantManagerService.findByEmail(managerDTO.getEmail())).thenThrow(NotFoundException.class);
         when(restaurantManagerService.save(managerDTO)).thenReturn(managerDTO);
         when(restaurantManagerDTOMapper.mapDTOToResponse(managerDTO)).thenReturn(managerResponse);
 
@@ -68,7 +78,11 @@ public class ITRestaurantManagerControllerImpl {
         RestaurantManagerDTO managerDTO = TestDataBuilder.buildRestaurantManagerDTO();
         managerDTO.setUsername("");
 
-        when(restaurantManagerService.findByEmail(managerDTO.getEmail())).thenThrow(NotFoundException.class); // for the @UniqueEmail validation annotation
+        // for the @UniqueEmail validation annotation
+        when(adminService.findByEmail(managerDTO.getEmail())).thenReturn(TestDataBuilder.buildAdminDTO());
+        when(customerService.findByEmail(managerDTO.getEmail())).thenReturn(TestDataBuilder.buildCustomerDTO());
+        when(restaurantManagerService.findByEmail(managerDTO.getEmail())).thenThrow(NotFoundException.class);
+
         when(restaurantManagerService.save(managerDTO)).thenReturn(managerDTO);
 
         MvcResult mvcResult = mockMvc.perform(post("/managers")

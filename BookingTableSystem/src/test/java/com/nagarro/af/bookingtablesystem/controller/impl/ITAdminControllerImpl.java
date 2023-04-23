@@ -7,6 +7,8 @@ import com.nagarro.af.bookingtablesystem.exception.NotFoundException;
 import com.nagarro.af.bookingtablesystem.exception.handler.ApiException;
 import com.nagarro.af.bookingtablesystem.mapper.impl.controller.AdminDTOMapper;
 import com.nagarro.af.bookingtablesystem.service.AdminService;
+import com.nagarro.af.bookingtablesystem.service.CustomerService;
+import com.nagarro.af.bookingtablesystem.service.RestaurantManagerService;
 import com.nagarro.af.bookingtablesystem.utils.TestDataBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,12 @@ public class ITAdminControllerImpl {
     private AdminService adminService;
 
     @MockBean
+    private CustomerService customerService;
+
+    @MockBean
+    private RestaurantManagerService restaurantManagerService;
+
+    @MockBean
     private AdminDTOMapper adminDTOMapper;
 
     @Test
@@ -47,7 +55,11 @@ public class ITAdminControllerImpl {
         AdminDTO adminDTO = TestDataBuilder.buildAdminDTO();
         AdminResponse adminResponse = TestDataBuilder.buildAdminResponse();
 
-        when(adminService.findByEmail(adminDTO.getEmail())).thenThrow(NotFoundException.class); // for the @UniqueEmail validation annotation
+        // for the @UniqueEmail validation annotation
+        when(customerService.findByEmail(adminDTO.getEmail())).thenReturn(TestDataBuilder.buildCustomerDTO());
+        when(restaurantManagerService.findByEmail(adminDTO.getEmail())).thenReturn(TestDataBuilder.buildRestaurantManagerDTO());
+        when(adminService.findByEmail(adminDTO.getEmail())).thenThrow(NotFoundException.class);
+
         when(adminService.save(adminDTO)).thenReturn(adminDTO);
         when(adminDTOMapper.mapDTOToResponse(adminDTO)).thenReturn(adminResponse);
 
@@ -68,7 +80,11 @@ public class ITAdminControllerImpl {
         AdminDTO adminDTO = TestDataBuilder.buildAdminDTO();
         adminDTO.setUsername("");
 
-        when(adminService.findByEmail(adminDTO.getEmail())).thenThrow(NotFoundException.class); // for the @UniqueEmail validation annotation
+        // for the @UniqueEmail validation annotation
+        when(customerService.findByEmail(adminDTO.getEmail())).thenReturn(TestDataBuilder.buildCustomerDTO());
+        when(restaurantManagerService.findByEmail(adminDTO.getEmail())).thenReturn(TestDataBuilder.buildRestaurantManagerDTO());
+        when(adminService.findByEmail(adminDTO.getEmail())).thenThrow(NotFoundException.class);
+
         when(adminService.save(adminDTO)).thenReturn(adminDTO);
 
         MvcResult mvcResult = mockMvc.perform(post("/admins")

@@ -38,11 +38,9 @@ public class Booking {
         this.dateHour = dateHour;
         this.customersNo = customersNo;
         this.tablesNo = tablesNo;
-        Date bookingDate = getBookingDate();
-        restaurant.getDateCapacityAvailability().putIfAbsent(
-                bookingDate,
-                new RestaurantCapacity(restaurant.getMaxTablesNo(), restaurant.getMaxCustomersNo())
-        );
+        updateRestaurantCapacity();
+        addBookingToCustomer();
+        addBookingToRestaurant();
     }
 
     public Date getBookingDate() {
@@ -51,6 +49,22 @@ public class Booking {
         int year = this.getDateHour().getYear();
         LocalDate date = LocalDate.of(year, month, day);
         return Date.valueOf(date);
+    }
+
+    public void updateRestaurantCapacity() {
+        Date bookingDate = getBookingDate();
+        this.restaurant.getDateCapacityAvailability().putIfAbsent(
+                bookingDate,
+                new RestaurantCapacity(this.restaurant.getMaxTablesNo(), this.restaurant.getMaxCustomersNo())
+        );
+    }
+
+    public void addBookingToCustomer() {
+        this.customer.addBooking(this);
+    }
+
+    public void addBookingToRestaurant() {
+        this.restaurant.addBooking(this);
     }
 
     public UUID getId() {
