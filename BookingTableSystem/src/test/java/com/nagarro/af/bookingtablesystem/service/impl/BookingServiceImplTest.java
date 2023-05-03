@@ -7,6 +7,7 @@ import com.nagarro.af.bookingtablesystem.mapper.impl.service.BookingMapper;
 import com.nagarro.af.bookingtablesystem.model.Booking;
 import com.nagarro.af.bookingtablesystem.model.RestaurantCapacity;
 import com.nagarro.af.bookingtablesystem.repository.BookingRepository;
+import com.nagarro.af.bookingtablesystem.repository.RestaurantCapacityRepository;
 import com.nagarro.af.bookingtablesystem.service.CustomerService;
 import com.nagarro.af.bookingtablesystem.service.RestaurantService;
 import com.nagarro.af.bookingtablesystem.utils.TestComparators;
@@ -23,7 +24,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,10 +56,16 @@ public class BookingServiceImplTest {
     private RestaurantService restaurantService;
 
     @Mock
+    private RestaurantCapacityRepository restaurantCapacityRepository;
+
+    @Mock
     private BookingMapper bookingMapper;
 
     @InjectMocks
     private BookingServiceImpl bookingService;
+
+    @Captor
+    private ArgumentCaptor<RestaurantCapacity> capacityArgumentCaptor;
 
     @Captor
     private ArgumentCaptor<Booking> bookingArgumentCaptor;
@@ -69,13 +76,15 @@ public class BookingServiceImplTest {
         BOOKING_DTO_TEST.setId(BOOKING_UUID_TEST);
 
         when(bookingMapper.mapDTOtoEntity(BOOKING_DTO_TEST)).thenReturn(BOOKING_TEST);
-        when(bookingRepository.makeBooking(BOOKING_TEST)).thenReturn(BOOKING_TEST);
+        when(bookingRepository.makeBooking(bookingArgumentCaptor.capture())).thenReturn(BOOKING_TEST);
         when(bookingMapper.mapEntityToDTO(BOOKING_TEST)).thenReturn(BOOKING_DTO_TEST);
 
         BookingDTO returnedBookingDTO = bookingService.makeBooking(BOOKING_DTO_TEST);
 
-        verify(bookingRepository).makeBooking(bookingArgumentCaptor.capture());
         assertNotNull(returnedBookingDTO);
+        Booking madeBooking = bookingArgumentCaptor.getValue();
+        assertTrue(madeBooking.getCustomer().getBookings().contains(madeBooking));
+        assertTrue(madeBooking.getRestaurant().getBookings().contains(madeBooking));
         assertThat(BOOKING_DTO_COMPARATOR.compare(returnedBookingDTO, BOOKING_DTO_TEST)).isZero();
     }
 
@@ -196,5 +205,42 @@ public class BookingServiceImplTest {
         List<BookingDTO> returnedBookingDTOList = bookingService.findAllByRestaurantId(RESTAURANT_UUID_TEST);
 
         assertTrue(returnedBookingDTOList.isEmpty());
+    }
+
+    @Test
+    public void testDelete_success() {
+        BOOKING_TEST.setId(BOOKING_UUID_TEST);
+        BOOKING_DTO_TEST.setId(BOOKING_UUID_TEST);
+
+        RestaurantCapacity updatedCapacity = updateRestaurantCapacity(getRestaurantCapacity());
+
+        when(bookingRepository.findById(BOOKING_UUID_TEST)).thenReturn(Optional.of(BOOKING_TEST));
+        when(bookingMapper.mapEntityToDTO(BOOKING_TEST)).thenReturn(BOOKING_DTO_TEST);
+        when(bookingMapper.mapDTOtoEntity(BOOKING_DTO_TEST)).thenReturn(BOOKING_TEST);
+        when(restaurantCapacityRepository.save(capacityArgumentCaptor.capture())).thenReturn(updatedCapacity);
+        doNothing().when(bookingRepository).delete(BOOKING_TEST);
+
+        bookingService.delete(BOOKING_UUID_TEST);
+
+        assertEquals(updatedCapacity.getTablesNo(), capacityArgumentCaptor.getValue().getTablesNo());
+        assertEquals(updatedCapacity.getCustomersNo(), capacityArgumentCaptor.getValue().getCustomersNo());
+    }
+
+    private RestaurantCapacity getRestaurantCapacity() {
+        return BOOKING_TEST.getRestaurant().getDateCapacityAvailability().get(BOOKING_TEST.getBookingDate());
+    }
+
+    private RestaurantCapacity updateRestaurantCapacity(RestaurantCapacity restaurantCapacity) {
+        int bookingTablesNo = BOOKING_TEST.getTablesNo();
+        int bookingCustomersNo = BOOKING_TEST.getCustomersNo();
+
+        restaurantCapacity.setTablesNo(
+                restaurantCapacity.getTablesNo() + bookingTablesNo
+        );
+        restaurantCapacity.setCustomersNo(
+                restaurantCapacity.getCustomersNo() + bookingCustomersNo
+        );
+
+        return restaurantCapacity;
     }
 }

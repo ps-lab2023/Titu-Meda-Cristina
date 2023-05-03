@@ -1,6 +1,6 @@
 package com.nagarro.af.bookingtablesystem.mapper;
 
-import com.nagarro.af.bookingtablesystem.config.ModelMapperConfig;
+import com.nagarro.af.bookingtablesystem.config.ApplicationConfig;
 import com.nagarro.af.bookingtablesystem.dto.AdminDTO;
 import com.nagarro.af.bookingtablesystem.dto.CustomerDTO;
 import com.nagarro.af.bookingtablesystem.model.Admin;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(classes = {ListMapper.class, ModelMapperConfig.class})
+@SpringBootTest(classes = {ListMapper.class, ApplicationConfig.class})
 public class ListMapperTest {
 
     private static final UUID ADMIN_UUID = UUID.fromString(TestDataBuilder.ADMIN_ID);

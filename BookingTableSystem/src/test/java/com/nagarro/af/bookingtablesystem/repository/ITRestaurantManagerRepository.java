@@ -27,4 +27,18 @@ public class ITRestaurantManagerRepository extends ITBaseRepository {
         Optional<RestaurantManager> optionalRestaurantManager = restaurantManagerRepository.findByEmail("nothing");
         assertTrue(optionalRestaurantManager.isEmpty());
     }
+
+    @Test
+    public void testFindByUsername_success() {
+        RestaurantManager manager = restaurantManagerRepository.saveAndFlush(TestDataBuilder.buildRestaurantManager());
+
+        Optional<RestaurantManager> optionalRestaurantManager = restaurantManagerRepository.findByUsername(manager.getUsername());
+        assertTrue(optionalRestaurantManager.isPresent());
+    }
+
+    @Test
+    public void testFindByUsername_notFound() {
+        Optional<RestaurantManager> optionalRestaurantManager = restaurantManagerRepository.findByUsername("nothing");
+        assertTrue(optionalRestaurantManager.isEmpty());
+    }
 }

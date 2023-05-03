@@ -27,4 +27,18 @@ public class ITCustomerRepository extends ITBaseRepository {
         Optional<Customer> optionalCustomer = customerRepository.findByEmail("nothing");
         assertTrue(optionalCustomer.isEmpty());
     }
+
+    @Test
+    public void testFindByUsername_success() {
+        Customer customer = customerRepository.saveAndFlush(TestDataBuilder.buildCustomer());
+
+        Optional<Customer> optionalCustomer = customerRepository.findByUsername(customer.getUsername());
+        assertTrue(optionalCustomer.isPresent());
+    }
+
+    @Test
+    public void testFindByUsername_notFound() {
+        Optional<Customer> optionalCustomer = customerRepository.findByUsername("nothing");
+        assertTrue(optionalCustomer.isEmpty());
+    }
 }

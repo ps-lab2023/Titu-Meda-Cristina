@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -51,9 +52,11 @@ public class ITAdminControllerImpl {
     private AdminDTOMapper adminDTOMapper;
 
     @Test
+    @WithMockUser(authorities = "ADMIN")
     public void testSave_whenValidInput_thenReturnStatus201() throws Exception {
         AdminDTO adminDTO = TestDataBuilder.buildAdminDTO();
         AdminResponse adminResponse = TestDataBuilder.buildAdminResponse();
+
 
         // for the @UniqueEmail validation annotation
         when(customerService.findByEmail(adminDTO.getEmail())).thenReturn(TestDataBuilder.buildCustomerDTO());

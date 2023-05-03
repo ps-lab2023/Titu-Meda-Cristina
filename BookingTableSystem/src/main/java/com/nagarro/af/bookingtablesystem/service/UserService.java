@@ -12,6 +12,8 @@ public interface UserService<T extends UserDTO> {
 
     T findByEmail(String email);
 
+    T findByUsername(String username);
+
     List<T> findAll();
 
     void delete(UUID id);

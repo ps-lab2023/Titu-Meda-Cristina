@@ -6,6 +6,7 @@ import com.nagarro.af.bookingtablesystem.mapper.impl.service.RestaurantManagerMa
 import com.nagarro.af.bookingtablesystem.model.RestaurantManager;
 import com.nagarro.af.bookingtablesystem.repository.RestaurantManagerRepository;
 import com.nagarro.af.bookingtablesystem.service.RestaurantManagerService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,14 +19,18 @@ public class RestaurantManagerServiceImpl implements RestaurantManagerService {
 
     private final RestaurantManagerMapper managerMapper;
 
-    public RestaurantManagerServiceImpl(RestaurantManagerRepository managerRepository, RestaurantManagerMapper managerMapper) {
+    private final PasswordEncoder passwordEncoder;
+
+    public RestaurantManagerServiceImpl(RestaurantManagerRepository managerRepository, RestaurantManagerMapper managerMapper, PasswordEncoder passwordEncoder) {
         this.managerRepository = managerRepository;
         this.managerMapper = managerMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public RestaurantManagerDTO save(RestaurantManagerDTO restaurantManagerDTO) {
         RestaurantManager restaurantManager = managerMapper.mapDTOtoEntity(restaurantManagerDTO);
+        restaurantManager.setPassword(passwordEncoder.encode(restaurantManager.getPassword()));
         return managerMapper.mapEntityToDTO(managerRepository.save(restaurantManager));
     }
 
@@ -43,6 +48,14 @@ public class RestaurantManagerServiceImpl implements RestaurantManagerService {
                 .map(this::mapToRestaurantManagerDTO)
                 .orElseThrow(() -> new NotFoundException("Restaurant manager with email "
                         + email + " could not be found!"));
+    }
+
+    @Override
+    public RestaurantManagerDTO findByUsername(String username) {
+        return managerRepository.findByUsername(username)
+                .map(this::mapToRestaurantManagerDTO)
+                .orElseThrow(() -> new NotFoundException("Restaurant manager with username "
+                        + username + " could not be found!"));
     }
 
     @Override

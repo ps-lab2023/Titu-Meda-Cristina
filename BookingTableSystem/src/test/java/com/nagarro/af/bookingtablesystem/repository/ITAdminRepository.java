@@ -27,4 +27,18 @@ public class ITAdminRepository extends ITBaseRepository {
         Optional<Admin> optionalAdmin = adminRepository.findByEmail("nothing");
         assertTrue(optionalAdmin.isEmpty());
     }
+
+    @Test
+    public void testFindByUsername_success() {
+        Admin admin = adminRepository.saveAndFlush(TestDataBuilder.buildAdmin());
+
+        Optional<Admin> optionalAdmin = adminRepository.findByUsername(admin.getUsername());
+        assertTrue(optionalAdmin.isPresent());
+    }
+
+    @Test
+    public void testFindByUsername_notFound() {
+        Optional<Admin> optionalAdmin = adminRepository.findByUsername("nothing");
+        assertTrue(optionalAdmin.isEmpty());
+    }
 }

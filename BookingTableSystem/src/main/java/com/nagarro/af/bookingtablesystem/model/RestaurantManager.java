@@ -3,13 +3,19 @@ package com.nagarro.af.bookingtablesystem.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Table(name = "restaurant_managers")
-public class RestaurantManager extends User {
+public class RestaurantManager extends User implements UserDetails {
+    private static final String ROLE = "ROLE_RESTAURANT_MANAGER";
+
     @OneToMany(mappedBy = "restaurantManager")
     private List<Restaurant> restaurants = new ArrayList<>();
 
@@ -52,13 +58,27 @@ public class RestaurantManager extends User {
     }
 
     @Override
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Restaurants: { ");
-        for (Restaurant restaurant : restaurants) {
-            stringBuilder.append(restaurant.getId()).append(" ");
-        }
-        stringBuilder.append("}");
-        return super.toString() + stringBuilder;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(ROLE));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

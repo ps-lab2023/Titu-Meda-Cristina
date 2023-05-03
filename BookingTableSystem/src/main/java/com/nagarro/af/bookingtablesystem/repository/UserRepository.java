@@ -10,4 +10,6 @@ import java.util.Optional;
 @NoRepositoryBean
 public interface UserRepository<T extends User, E extends Serializable> extends JpaRepository<T, E> {
     Optional<T> findByEmail(String email);
+
+    Optional<T> findByUsername(String username);
 }

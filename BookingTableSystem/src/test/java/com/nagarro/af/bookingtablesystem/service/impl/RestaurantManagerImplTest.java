@@ -5,14 +5,18 @@ import com.nagarro.af.bookingtablesystem.dto.UserDTO;
 import com.nagarro.af.bookingtablesystem.exception.NotFoundException;
 import com.nagarro.af.bookingtablesystem.mapper.impl.service.RestaurantManagerMapper;
 import com.nagarro.af.bookingtablesystem.model.RestaurantManager;
+import com.nagarro.af.bookingtablesystem.model.User;
 import com.nagarro.af.bookingtablesystem.repository.RestaurantManagerRepository;
 import com.nagarro.af.bookingtablesystem.utils.TestComparators;
 import com.nagarro.af.bookingtablesystem.utils.TestDataBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 
@@ -25,9 +29,13 @@ public class RestaurantManagerImplTest {
 
     private static final UUID MANAGER_UUID_TEST = UUID.fromString(TestDataBuilder.RESTAURANT_MANAGER_ID);
 
+    private static final String ENCRYPTED_PASSWORD = "$2a$10$YzGNtx2VeQUW.ml7JEGWP.u6s5kXhCgxTB4t/Jykc8U.6LRkn7ORS";
+
     private static final RestaurantManager MANAGER_TEST = TestDataBuilder.buildRestaurantManager();
 
     private static final RestaurantManagerDTO MANAGER_DTO_TEST = TestDataBuilder.buildRestaurantManagerDTO();
+
+    private static final Comparator<User> USER_COMPARATOR = TestComparators.USER_COMPARATOR;
 
     private static final Comparator<UserDTO> USER_DTO_COMPARATOR = TestComparators.USER_DTO_COMPARATOR;
 
@@ -37,22 +45,38 @@ public class RestaurantManagerImplTest {
     @Mock
     private RestaurantManagerMapper managerMapper;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private RestaurantManagerServiceImpl restaurantManagerService;
+
+    @Captor
+    private ArgumentCaptor<RestaurantManager> managerArgumentCaptor;
 
     @Test
     public void testSave_success() {
         MANAGER_TEST.setId(MANAGER_UUID_TEST);
         MANAGER_DTO_TEST.setId(MANAGER_UUID_TEST);
 
+        RestaurantManager managerEncryptedPassword = TestDataBuilder.buildRestaurantManager();
+        managerEncryptedPassword.setId(MANAGER_UUID_TEST);
+        managerEncryptedPassword.setPassword(ENCRYPTED_PASSWORD);
+
+        RestaurantManagerDTO managerDTOEncryptedPassword = TestDataBuilder.buildRestaurantManagerDTO();
+        managerDTOEncryptedPassword.setId(MANAGER_UUID_TEST);
+        managerDTOEncryptedPassword.setPassword(ENCRYPTED_PASSWORD);
+
         when(managerMapper.mapDTOtoEntity(MANAGER_DTO_TEST)).thenReturn(MANAGER_TEST);
-        when(restaurantManagerRepository.save(MANAGER_TEST)).thenReturn(MANAGER_TEST);
-        when(managerMapper.mapEntityToDTO(MANAGER_TEST)).thenReturn(MANAGER_DTO_TEST);
+        when(passwordEncoder.encode(MANAGER_TEST.getPassword())).thenReturn(ENCRYPTED_PASSWORD);
+        when(restaurantManagerRepository.save(managerArgumentCaptor.capture())).thenReturn(managerEncryptedPassword);
+        when(managerMapper.mapEntityToDTO(managerEncryptedPassword)).thenReturn(managerDTOEncryptedPassword);
 
         RestaurantManagerDTO returnedManagerDTO = restaurantManagerService.save(MANAGER_DTO_TEST);
 
         assertNotNull(returnedManagerDTO);
-        assertThat(USER_DTO_COMPARATOR.compare(returnedManagerDTO, MANAGER_DTO_TEST)).isZero();
+        assertThat(USER_COMPARATOR.compare(managerEncryptedPassword, managerArgumentCaptor.getValue())).isZero();
+        assertThat(USER_DTO_COMPARATOR.compare(returnedManagerDTO, managerDTOEncryptedPassword)).isZero();
     }
 
     @Test

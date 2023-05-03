@@ -7,6 +7,7 @@ import com.nagarro.af.bookingtablesystem.model.Customer;
 import com.nagarro.af.bookingtablesystem.repository.CustomerRepository;
 import com.nagarro.af.bookingtablesystem.service.CustomerService;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,15 +22,19 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final ListMapper listMapper;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, ListMapper listMapper) {
+    private final PasswordEncoder passwordEncoder;
+
+    public CustomerServiceImpl(CustomerRepository customerRepository, ModelMapper modelMapper, ListMapper listMapper, PasswordEncoder passwordEncoder) {
         this.customerRepository = customerRepository;
         this.modelMapper = modelMapper;
         this.listMapper = listMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public CustomerDTO save(CustomerDTO customerDTO) {
         Customer customer = modelMapper.map(customerDTO, Customer.class);
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
         return modelMapper.map(customerRepository.save(customer), CustomerDTO.class);
     }
 
@@ -46,6 +51,14 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.findByEmail(email)
                 .map(this::mapToCustomerDTO)
                 .orElseThrow(() -> new NotFoundException("Customer with email " + email +
+                        " could not be found!"));
+    }
+
+    @Override
+    public CustomerDTO findByUsername(String username) {
+        return customerRepository.findByUsername(username)
+                .map(this::mapToCustomerDTO)
+                .orElseThrow(() -> new NotFoundException("Customer with username " + username +
                         " could not be found!"));
     }
 
